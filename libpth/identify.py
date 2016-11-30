@@ -1,5 +1,6 @@
 import os
 import math
+from collections import defaultdict
 from beets import autotag, config, importer, ui
 from beets.autotag import AlbumMatch, Recommendation
 from beets.importer import QUEUE_SIZE, read_tasks
@@ -9,7 +10,6 @@ from beets.ui.commands import TerminalImportSession, manual_search, dist_string,
 from beets.util import pipeline, displayable_path, syspath, normpath
 from beetsplug.fetchart import FetchArtPlugin, CoverArtArchive, AlbumArtOrg, Amazon, Wikipedia, FanartTV
 from beetsplug.lastgenre import LastGenrePlugin, LASTFM
-from . import utils
 from .structures import Release
 
 
@@ -30,7 +30,7 @@ class IdentifySession(TerminalImportSession):
     '''
     def __init__(self, paths, release_list):
         self.want_resume = False
-        self.config = utils.NoneDict()
+        self.config = defaultdict(lambda: None)
         self.release_list = release_list
         super().__init__(None, None, paths, None)
 

@@ -2,14 +2,6 @@ import time
 import functools
 
 
-class NoneDict(dict):
-    '''
-    A dict that returns None when the key doesn't exist.
-    '''
-    def __getitem__(self, key):
-        return self.get(key)
-
-
 def rate_limit(interval):
     """
     Rate limiting decorator which allows the wrapped function to be
