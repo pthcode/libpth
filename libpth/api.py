@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import requests
 from . import utils
 

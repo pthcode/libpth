@@ -1,1 +1,2 @@
 requests==2.12.1
+beets==1.4.2
