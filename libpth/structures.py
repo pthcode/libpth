@@ -14,4 +14,20 @@ class Release(beets.library.Album):
 
     It contains a list of tracks and other files associated with it.
     '''
-    pass
+    @classmethod
+    def from_beets_albuminfo(cls, albuminfo):
+        '''
+        Converts a beets.autotag.AlbumInfo to a Release.
+        '''
+        result = Release()
+        for key, value in albuminfo.__dict__.items():
+            if key == 'artist':
+                dest = 'albumartist'
+            elif key == 'album_id':
+                dest = 'mb_albumid'
+            elif key == 'releasegroup_id':
+                dest = 'mb_releasegroupid'
+            else:
+                dest = key
+            setattr(result, dest, value)
+        return result
