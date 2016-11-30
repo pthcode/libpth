@@ -6,6 +6,7 @@ from beets.ui import UserError, print_
 from beets.ui.commands import TerminalImportSession, manual_search, dist_string, penalty_string, disambig_string,\
     show_change, manual_id
 from beets.util import pipeline, displayable_path, syspath, normpath
+from beetsplug.fetchart import FetchArtPlugin, CoverArtArchive, AlbumArtOrg, Amazon, Wikipedia, FanartTV
 from . import utils
 from .structures import Release
 
@@ -18,6 +19,7 @@ VALID_TAGS = set([
     'punk', 'reggae', 'rhythm.and.blues', 'rock', 'shoegaze', 'ska', 'soul', 'synth.pop', 'techno', 'trance',
     'video.game'
 ])
+IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.gif', '.png')
 
 
 class IdentifySession(TerminalImportSession):
@@ -38,6 +40,13 @@ class IdentifySession(TerminalImportSession):
         ]
         pl = pipeline.Pipeline(stages)
         pl.run_parallel(QUEUE_SIZE)
+
+
+class ArtworkFetcher(FetchArtPlugin):
+    def __init__(self):
+        super().__init__()
+        sources = [CoverArtArchive, AlbumArtOrg, Amazon, Wikipedia, FanartTV]
+        self.sources = [s(self._log, self.config) for s in sources]
 
 
 def choose_candidate(candidates, singleton, rec, cur_artist=None,
@@ -252,3 +261,23 @@ def identify_releases(release_paths):
     session = IdentifySession(release_paths, result)
     session.run()
     return result
+
+
+def fetch_album_artwork(release, fetcher=ArtworkFetcher()):
+    '''
+    Given a Release, this will search the internet for matching album
+    artwork, and if found, return its URL.
+    '''
+    result = fetcher.art_for_album(release, [], False)
+
+    if result and result.url:
+        url = result.url
+
+        # If the URL doesn't end with a image extension, PTH won't accept it.
+        if not url.endswith(IMAGE_EXTENSIONS):
+            # So we have to trick it.
+            url += '#.jpg'
+
+        return url
+
+    return None
