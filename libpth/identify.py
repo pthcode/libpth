@@ -1,4 +1,5 @@
 import os
+import math
 from beets import autotag, config, importer, ui
 from beets.autotag import AlbumMatch, Recommendation
 from beets.importer import QUEUE_SIZE, read_tasks
@@ -7,6 +8,7 @@ from beets.ui.commands import TerminalImportSession, manual_search, dist_string,
     show_change, manual_id
 from beets.util import pipeline, displayable_path, syspath, normpath
 from beetsplug.fetchart import FetchArtPlugin, CoverArtArchive, AlbumArtOrg, Amazon, Wikipedia, FanartTV
+from beetsplug.lastgenre import LastGenrePlugin, LASTFM
 from . import utils
 from .structures import Release
 
@@ -263,7 +265,7 @@ def identify_releases(release_paths):
     return result
 
 
-def fetch_album_artwork(release, fetcher=ArtworkFetcher()):
+def fetch_artwork(release, fetcher=ArtworkFetcher()):
     '''
     Given a Release, this will search the internet for matching album
     artwork, and if found, return its URL.
@@ -281,3 +283,28 @@ def fetch_album_artwork(release, fetcher=ArtworkFetcher()):
         return url
 
     return None
+
+
+def fetch_tags(release, limit=5, min_weight=10, lastgenre=LastGenrePlugin()):
+    '''
+    Given a release, this will search last.fm for tags and return the
+    ones that are valid on PTH (up to a specified `limit`).
+
+    Tags with fewer than `min_weight` votes will be excluded.
+    '''
+    result = set()
+
+    # First retrieve tags for the album.
+    last_obj = LASTFM.get_album(release.albumartist, release.album)
+    for tag in lastgenre._tags_for(last_obj, min_weight)[:math.ceil(limit / 2)]:
+        if tag in VALID_TAGS:
+            result.add(tag)
+
+    # If we don't have enough, fall back to artist tags.
+    if len(result) < math.floor(limit / 2):
+        last_obj = LASTFM.get_artist(release.albumartist)
+        for tag in lastgenre._tags_for(last_obj, min_weight)[:math.ceil(limit / 2)]:
+            if tag in VALID_TAGS:
+                result.add(tag)
+
+    return list(result)[:limit]
