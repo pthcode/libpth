@@ -243,7 +243,7 @@ def identify_release(session, task):
         return
 
     path = task.toppath.decode(sys.getfilesystemencoding())
-    release = Release.from_beets_albuminfo(path, choice.info)
+    release = Release(path, choice.info)
     session.release_list.append(release)
 
 
@@ -272,7 +272,8 @@ def fetch_artwork(release, fetcher=ArtworkFetcher()):
     Given a Release, this will search the internet for matching album
     artwork, and if found, return its URL.
     '''
-    result = fetcher.art_for_album(release, [], False)
+    album = release.to_beets_album()
+    result = fetcher.art_for_album(album, [release.path], False)
 
     if result and result.url:
         url = result.url
@@ -297,14 +298,14 @@ def fetch_tags(release, limit=5, min_weight=10, lastgenre=LastGenrePlugin()):
     result = set()
 
     # First retrieve tags for the album.
-    last_obj = LASTFM.get_album(release.albumartist, release.album)
+    last_obj = LASTFM.get_album(release.album_artist, release.title)
     for tag in lastgenre._tags_for(last_obj, min_weight)[:math.ceil(limit / 2)]:
         if tag in VALID_TAGS:
             result.add(tag)
 
     # If we don't have enough, fall back to artist tags.
     if len(result) < math.floor(limit / 2):
-        last_obj = LASTFM.get_artist(release.albumartist)
+        last_obj = LASTFM.get_artist(release.album_artist)
         for tag in lastgenre._tags_for(last_obj, min_weight)[:math.ceil(limit / 2)]:
             if tag in VALID_TAGS:
                 result.add(tag)
