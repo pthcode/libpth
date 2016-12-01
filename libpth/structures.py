@@ -31,3 +31,32 @@ class Release(beets.library.Album):
                 dest = key
             setattr(result, dest, value)
         return result
+
+    @property
+    def medium(self):
+        '''
+        Returns the release's delivery mechanism (Vinyl, CD, WEB, etc.).
+        '''
+        return {
+            'CD': 'CD',
+            'CD-R': 'CD',
+            'Enhanced CD': 'CD',
+            'HDCD': 'CD',
+            'DualDisc': 'CD',
+            'Copy Control CD': 'CD',
+            'Vinyl': 'Vinyl',
+            '12\' Vinyl': 'Vinyl',
+            'Digital Media': 'WEB',
+            'SACD': 'SACD',
+            'Hybrid SACD': 'SACD',
+            'Cassette': 'Cassette',
+            None: 'CD',
+        }[self.media]
+
+    @property
+    def format(self):
+        '''
+        Returns the release's file format (FLAC / V0 / 320).
+        '''
+        # TODO: Support V0/320.
+        return 'FLAC'
