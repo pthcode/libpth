@@ -1,3 +1,4 @@
+import os
 import time
 import functools
 
@@ -24,3 +25,25 @@ def rate_limit(interval):
         return wrapper
 
     return decorator
+
+
+def locate(root, match_function, ignore_dotfiles=True):
+    '''
+    Yields all filenames within `root` for which match_function returns
+    True.
+    '''
+    for path, dirs, files in os.walk(root):
+        for filename in (os.path.abspath(os.path.join(path, filename))
+                         for filename in files if match_function(filename)):
+            if ignore_dotfiles and os.path.basename(filename).startswith('.'):
+                pass
+            else:
+                yield filename
+
+
+def ext_matcher(*extensions):
+    '''
+    Returns a function which checks if a filename has one of the specified
+    extensions.
+    '''
+    return lambda f: os.path.splitext(f)[-1].lower() in set(extensions)

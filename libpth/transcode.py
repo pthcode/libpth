@@ -9,6 +9,7 @@ import signal
 import subprocess
 import multiprocessing
 import mutagen.flac
+from .utils import locate, ext_matcher
 
 ENCODERS = {
     '320': {'enc': 'lame', 'ext': '.mp3', 'opts': '-h -b 320 --ignore-tag-errors'},
@@ -68,26 +69,6 @@ def run_pipeline(cmds):
         results.append((proc.returncode, proc.stderr.read()))
     results.append((last_proc.returncode, last_stderr))
     return results
-
-
-def locate(root, match_function, ignore_dotfiles=True):
-    '''
-    Yields all filenames within the root directory for which match_function returns True.
-    '''
-    for path, dirs, files in os.walk(root):
-        for filename in (os.path.abspath(os.path.join(path, filename))
-                         for filename in files if match_function(filename)):
-            if ignore_dotfiles and os.path.basename(filename).startswith('.'):
-                pass
-            else:
-                yield filename
-
-
-def ext_matcher(*extensions):
-    '''
-    Returns a function which checks if a filename has one of the specified extensions.
-    '''
-    return lambda f: os.path.splitext(f)[-1].lower() in set(extensions)
 
 
 def is_24bit(flac_dir):

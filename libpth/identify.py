@@ -1,4 +1,5 @@
 import os
+import sys
 import math
 from collections import defaultdict
 from beets import autotag, config, importer, ui
@@ -241,7 +242,8 @@ def identify_release(session, task):
     if not isinstance(choice, AlbumMatch):
         return
 
-    release = Release.from_beets_albuminfo(choice.info)
+    path = task.toppath.decode(sys.getfilesystemencoding())
+    release = Release.from_beets_albuminfo(path, choice.info)
     session.release_list.append(release)
 
 
