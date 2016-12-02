@@ -19,9 +19,12 @@ class Release:
     - `info`: An optional beets.autotag.AlbumInfo object.
     '''
     def __init__(self, path=None, info=None, title=None, album_artist=None, artists=None, year=None, original_year=None,
-                 medium=None, format=None, bitrate=None, record_label=None, catalog_number=None, type=None):
+                 medium=None, format=None, bitrate=None, record_label=None, catalog_number=None, type=None,
+                 artwork_url=None, tags=None):
         self.path = path
         self.info = info
+        self.artwork_url = artwork_url
+        self.tags = tags
         self._title = title
         self._album_artist = album_artist
         self._artists = artists
