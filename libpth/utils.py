@@ -1,6 +1,8 @@
 import os
 import time
+import tempfile
 import functools
+from . import metafile
 
 
 def rate_limit(interval):
@@ -47,3 +49,24 @@ def ext_matcher(*extensions):
     extensions.
     '''
     return lambda f: os.path.splitext(f)[-1].lower() in set(extensions)
+
+
+def _add_source(meta):
+    meta['info']['source'] = 'PTH'
+
+
+def make_torrent(path, passkey, output_dir=None):
+    '''
+    Creates a torrent suitable for uploading to PTH.
+
+    - `path`: The directory or file to upload.
+    - `passkey`: Your tracker passkey.
+    - `output_dir`: The directory where the torrent will be created. If unspecified, {} will be used.
+    '''.format(tempfile.tempdir)
+    if output_dir is None:
+        output_dir = tempfile.tempdir
+
+    torrent_path = tempfile.mktemp(dir=output_dir, suffix='.torrent')
+    torrent = metafile.Metafile(torrent_path)
+    torrent.create(path, ['https://please.passtheheadphones.me/'], private=True, callback=_add_source)
+    return torrent_path
