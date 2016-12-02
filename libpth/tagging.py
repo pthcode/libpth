@@ -224,4 +224,14 @@ def validate_upload(release):
         print('Invalid remaster year')
         return False
 
+    '''
+    Implementation of custom sanity checks
+    '''
+    if release.original_year < MIN_YEAR:
+        print('Minimum year is ' + MIN_YEAR + ' as that is when the first record has been made.')
+        return False
+    elif ' & ' in release.artists[0].name:
+        print('Arist names that contain & are not yet supported.')
+        return False
+
     return True
