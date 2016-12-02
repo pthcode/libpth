@@ -7,6 +7,7 @@ import textwrap
 from beets.mediafile import MediaFile
 from beets.util import sanitize_path
 from .utils import locate, ext_matcher
+from . import identify
 
 
 ALBUM_TEMPLATE = string.Template('$artist - $album ($year) [$format_info]')
@@ -14,6 +15,15 @@ AUDIO_EXTENSIONS = ('.flac', '.mp3')
 ALLOWED_EXTENSIONS = AUDIO_EXTENSIONS + ('.cue', '.log', '.gif', '.jpeg', '.jpg', '.md5', '.nfo', '.pdf', '.png',
                                          '.sfv', '.txt')
 MAX_FILENAME_LENGTH = 180
+MAX_FIELD_LENGTH = 80
+MIN_YEAR = 1889
+MIN_CD_YEAR = 1982
+MAX_ALBUM_LENGTH = 200
+MAX_URL_LENGTH = 255
+ALLOWED_RELEASE_TYPES = [1,3,5,6,7,9,11,13,14,15,16,17,18,19,21]
+ALLOWED_BITRATES = ['192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)', 'V0 (VBR)', 'q8.x (VBR)', '320', 'Lossless', '24bit Lossless', 'Other']
+ALLOWED_MEDIA = ['CD', 'DVD', 'Vinyl', 'Soundboard', 'SACD', 'DAT', 'Cassette', 'WEB']
+
 
 
 class InvalidFormatException(Exception):
@@ -164,3 +174,54 @@ def is_original(release):
     #elif disambig = ''
     #elif release.title != release_group.title
 
+def validate_upload(release):
+    '''
+    The following checks are taken from Gazelle
+    /sections/upload/upload_handle.php
+    '''
+    if len(release.title) not in range(1,MAX_ALBUM_LENGTH):
+        print('Title must be between 1 and 200 characters.')
+        return False
+    elif release.type not in ALLOWED_RELEASE_TYPES:
+        print('Release is not of valid type (album, compilation, etc.).')
+        return False
+    # TO-DO: elif len(release.tags) < 1:
+    #     print('Enter at least one tag')
+    elif release.record_label is not None and len(release.record_label) not in range(2,MAX_FIELD_LENGTH):
+        print('Record label must be between 2 and ' + str(MAX_FIELD_LENGTH) + ' characters.')
+        return False
+    elif release.catalog_number is not None and len(release.catalog_number) not in range(2,MAX_FIELD_LENGTH):
+        print('Catalog number must be between 2 and ' + str(MAX_FIELD_LENGTH) + ' characters.')
+        return False
+    # TO-DO: elif len(release.album_description) < 10:
+    #     print('The album description has a minimum length of 10 characters.')
+    elif release.medium == 'CD' and release.original_year < MIN_CD_YEAR:
+        print('You have selected a year for an album that predates the media you say it was created on.')
+        return False
+    elif not is_original(release) and not release.year:
+        print('Year of remaster/re-issue must be entered.')
+        return False
+    elif release.format == 'FLAC' and audio_bitrate(release.path) != 'Lossless':
+        # Better: Do album file size vs. album duration check
+        print('FLAC bitrate must be lossless.')
+        return False
+    # Missing Gazelle validation: ' You must enter the other bitrate (max length: 9 characters).'
+    # This is the extra field when the bitrate is not one of the normal presets: V0/V2/320 etc.
+    elif release.bitrate not in ALLOWED_BITRATES:
+        print('You must choose a bitrate.')
+        return False
+    elif release.medium not in ALLOWED_MEDIA:
+        print('Please select a valid media.')
+        return False
+    # TO-DO change fetch_artwork(release) back to release.artwork_url
+    elif len(identify.fetch_artwork(release)) not in range(12,MAX_URL_LENGTH):
+        print('The image URL you entered was invalid.')
+        return False
+    # TO-DO: elif len(release.description) < 10:
+    #     print('The release description has a minimum length of 10 characters.')
+    # TO-DO: Group ID was not numeric
+    elif release.original_year > release.year:
+        print('Invalid remaster year')
+        return False
+
+    return True
