@@ -18,65 +18,83 @@ class Release:
     - `path`: The path to the release directory.
     - `info`: An optional beets.autotag.AlbumInfo object.
     '''
-    def __init__(self, path, info=None):
+    def __init__(self, path=None, info=None, title=None, album_artist=None, artists=None, year=None, original_year=None,
+                 medium=None, format=None, bitrate=None, record_label=None, catalog_number=None, type=None):
         self.path = path
         self.info = info
+        self._title = title
+        self._album_artist = album_artist
+        self._artists = artists
+        self._year = year
+        self._original_year = original_year
+        self._medium = medium
+        self._format = format
+        self._bitrate = bitrate
+        self._record_label = record_label
+        self._catalog_number = catalog_number
+        self._type = type
 
     @property
     def title(self):
         '''
         Returns the release title.
         '''
-        return self.info.album
+        return self._title or self.info.album
+
+    @title.setter
+    def title(self, value):
+        self._title = value
 
     @property
     def album_artist(self):
         '''
         Returns the primary artist for this release.
         '''
-        return self.info.artist
+        return self._album_artist or self.info.artist
+
+    @album_artist.setter
+    def album_artist(self, value):
+        self._album_artist = value
 
     @property
     def artists(self):
         '''
         Returns a list of ReleaseArtists for this release.
         '''
-        return list(map(ReleaseArtist, (track.artist for track in self.info.tracks)))
+        return self._artists or list(map(ReleaseArtist, (track.artist for track in self.info.tracks)))
+
+    @artists.setter
+    def artists(self, value):
+        self._artists = value
 
     @property
     def year(self):
         '''
         Returns the year in which this release was released.
         '''
-        return self.info.year or tagging.release_year(self.path)
+        return self._year or self.info.year or tagging.release_year(self.path)
+
+    @year.setter
+    def year(self, value):
+        self._year = value
 
     @property
     def original_year(self):
         '''
         Returns the year in which this release group was originally released.
         '''
-        return self.info.original_year
+        return self._original_year or self.info.original_year
 
-    @property
-    def files(self):
-        '''
-        Returns a list of all allowed files within this release.
-        '''
-        return tagging.allowed_files(self.path)
-
-    @property
-    def audio_files(self):
-        '''
-        Returns a list of all audio files within this release.
-        '''
-        return tagging.audio_files(self.path)
+    @original_year.setter
+    def original_year(self, value):
+        self._original_year = value
 
     @property
     def medium(self):
         '''
         Returns the release's delivery mechanism (Vinyl, CD, WEB, etc.).
         '''
-        return {
+        return self._medium or {
             'CD': 'CD',
             'CD-R': 'CD',
             'Enhanced CD': 'CD',
@@ -92,39 +110,62 @@ class Release:
             None: 'CD',
         }[self.info.media]
 
+    @medium.setter
+    def medium(self, value):
+        self._medium = value
+
     @property
     def format(self):
         '''
         Returns the release's audio format (FLAC / MP3).
         '''
-        return tagging.audio_format(self.path)
+        return self._format or tagging.audio_format(self.path)
+
+    @format.setter
+    def format(self, value):
+        self._format = value
 
     @property
     def bitrate(self):
         '''
         Returns the release's audio bitrate (Lossless / 24bit Lossless / 320 / V0 (VBR)).
         '''
-        return tagging.audio_bitrate(self.path)
+        return self._bitrate or tagging.audio_bitrate(self.path)
+
+    @bitrate.setter
+    def bitrate(self, value):
+        self._bitrate = value
 
     @property
     def record_label(self):
         '''
         Return the release's record label.
         '''
-        return self.info.label
+        return self._record_label or self.info.label
+
+    @record_label.setter
+    def record_label(self, value):
+        self._record_label = value
 
     @property
     def catalog_number(self):
         '''
         Returns the release's catalog number.
         '''
-        return self.info.catalognum
+        return self._catalog_number or self.info.catalognum
+
+    @catalog_number.setter
+    def catalog_number(self, value):
+        self._catalog_number = value
 
     @property
     def type(self):
         '''
         Returns the release type (e.g. Album, Compilation, Anthology).
         '''
+        if self._type:
+            return self._type
+
         result = {
             "album": 1,
             "soundtrack": 3,
@@ -140,6 +181,24 @@ class Release:
             # A compilation of one artist's songs is an Anthology.
             result = 6
         return result
+
+    @type.setter
+    def type(self, value):
+        self._type = value
+
+    @property
+    def files(self):
+        '''
+        Returns a list of all allowed files within this release.
+        '''
+        return tagging.allowed_files(self.path)
+
+    @property
+    def audio_files(self):
+        '''
+        Returns a list of all audio files within this release.
+        '''
+        return tagging.audio_files(self.path)
 
     def to_beets_album(self):
         '''
