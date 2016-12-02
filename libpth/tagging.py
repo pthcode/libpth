@@ -137,8 +137,22 @@ def release_year(path):
     '''
     Returns the year in which the release located at `path` was released.
     '''
-    match = re.search(r'\d{4}', path)
-    if match:
-        return int(match)
+    matches = re.findall(r'\d{4}', path)
+    result = 0
+    if len(matches) > 0:
+        result = max(matches)
     mediafile = MediaFile(audio_files(path)[0])
-    return mediafile.year
+    return max(int(result),int(mediafile.year))
+
+
+def original_year(path):
+    '''
+    Returns the year in which the release located at `path` was released.
+    '''
+    matches = re.findall(r'\d{4}', path)
+    result = 0
+    if len(matches) > 0:
+        result = min(matches)
+    mediafile = MediaFile(audio_files(path)[0])
+    return min(int(result),int(mediafile.year))
+
