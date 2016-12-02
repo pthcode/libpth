@@ -156,3 +156,11 @@ def original_year(path):
     mediafile = MediaFile(audio_files(path)[0])
     return min(int(result),int(mediafile.year))
 
+def is_original(release):
+    if release.year != release.original_year:
+        return False
+    else:
+        return True
+    #elif disambig = ''
+    #elif release.title != release_group.title
+
