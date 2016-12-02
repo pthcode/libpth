@@ -203,6 +203,14 @@ class Release:
         '''
         return tagging.audio_files(self.path)
 
+    @property
+    def other_files(self):
+        '''
+        Returns a list of all non-audio (but still allowed) files within
+        this release.
+        '''
+        return sorted(set(self.files) - set(self.audio_files))
+
     def to_beets_album(self):
         '''
         Creates a beets.library.Album() object from this release.
