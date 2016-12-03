@@ -157,6 +157,13 @@ def allowed_files(path):
     return sorted(locate(path, ext_matcher(*ALLOWED_EXTENSIONS)))
 
 
+def log_files(path):
+    '''
+    Returns a list of all log files within `path`.
+    '''
+    return sorted(locate(path, ext_matcher('.log')))
+
+
 def audio_format(path):
     '''
     Returns the format (FLAC / MP3) of the release located at `path`.

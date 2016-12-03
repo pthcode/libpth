@@ -21,12 +21,13 @@ class Release:
     '''
     def __init__(self, path=None, info=None, match=None, title=None, album_artist=None, artists=None, year=None,
                  original_year=None, medium=None, format=None, bitrate=None, record_label=None, catalog_number=None,
-                 type=None, artwork_url=None, tags=None):
+                 type=None, artwork_url=None, tags=None, torrent=None):
         self.path = path
         self.match = match
         self.info = match and match.info
         self.artwork_url = artwork_url
         self.tags = tags
+        self.torrent = torrent
         self._title = title
         self._album_artist = album_artist
         self._artists = artists
@@ -212,6 +213,13 @@ class Release:
         this release.
         '''
         return sorted(set(self.files) - set(self.audio_files))
+
+    @property
+    def log_files(self):
+        '''
+        Returns a list of all log files in this release.
+        '''
+        return tagging.log_files(self.path)
 
     def to_beets_album(self):
         '''
