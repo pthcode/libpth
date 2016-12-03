@@ -193,6 +193,24 @@ class Release:
         self._type = value
 
     @property
+    def is_original(self):
+        '''
+        Returns True if this release is the original release; False otherwise.
+        '''
+        if self.original_year is None:
+            return True
+        if self.original_year == self.year:
+            return True
+        return False
+
+    @property
+    def description(self):
+        '''
+        Returns a bbcode formatted description for this release.
+        '''
+        return tagging.release_description(self)
+
+    @property
     def files(self):
         '''
         Returns a list of all allowed files within this release.

@@ -12,6 +12,10 @@ from .utils import locate, ext_matcher
 
 ALBUM_TEMPLATE = string.Template('$artist - $album ($year) [$format_info]')
 AUDIO_FILE_TEMPLATE = string.Template('$number. $title$extension')
+RELEASE_DESCRIPTION_TEMPLATE = string.Template('''
+Track list:
+$track_list
+'''.strip())
 AUDIO_EXTENSIONS = ('.flac', '.mp3')
 ALLOWED_EXTENSIONS = AUDIO_EXTENSIONS + ('.cue', '.log', '.gif', '.jpeg', '.jpg', '.md5', '.nfo', '.pdf', '.png',
                                          '.sfv', '.txt')
@@ -205,3 +209,12 @@ def release_year(path):
         return int(match)
     mediafile = MediaFile(audio_files(path)[0])
     return mediafile.year
+
+
+def release_description(release):
+    '''
+    Returns a bbcode formatted description for `release`.
+    '''
+    track_list = ['[#]{}'.format(track.title) for track in release.info.tracks]
+    track_list = '\n'.join(track_list)
+    return RELEASE_DESCRIPTION_TEMPLATE.substitute(**locals())
