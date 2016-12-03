@@ -86,5 +86,8 @@ class API:
 
         r = self.post('upload.php', data=data, files=files)
         if 'torrent_comments' not in r.text:
-            error = re.search('<p style="color: red; text-align: center;">([^<]+)', r.text).group(1)
-            raise UploadException(error)
+            match = re.search('<p style="color: red; text-align: center;">([^<]+)', r.text)
+            if match:
+                raise UploadException(match.group(1))
+            else:
+                raise UploadException('The upload failed.')
