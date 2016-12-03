@@ -10,6 +10,7 @@ from .utils import locate, ext_matcher
 
 
 ALBUM_TEMPLATE = string.Template('$artist - $album ($year) [$format_info]')
+AUDIO_FILE_TEMPLATE = string.Template('$number $title$extension')
 AUDIO_EXTENSIONS = ('.flac', '.mp3')
 ALLOWED_EXTENSIONS = AUDIO_EXTENSIONS + ('.cue', '.log', '.gif', '.jpeg', '.jpg', '.md5', '.nfo', '.pdf', '.png',
                                          '.sfv', '.txt')
@@ -38,7 +39,33 @@ def directory_name(release):
     return path
 
 
-def fix_release_filenames(release, directory=None):
+def audio_filename(path, is_compilation=False):
+    ''''
+    Returns the proper filename for the audio file located at `path`.
+
+    Assumes that the audio file has already been properly tagged.
+
+    If `is_compilation` is True, it means the audio file is part of
+    a compilation, and thus the track artist will be included in the
+    filename.
+    '''
+    mediafile = MediaFile(path)
+
+    if mediafile.disctotal and mediafile.disc and mediafile.disctotal > 1:
+        number = '{}.{:02}'.format(mediafile.disc, mediafile.track)
+    else:
+        number = '{:02}'.format(mediafile.track)
+
+    if is_compilation:
+        title = '{} - {}'.format(mediafile.artist, mediafile.title)
+    else:
+        title = mediafile.title
+
+    _, extension = os.path.splitext(path)
+    return AUDIO_FILE_TEMPLATE.substitute(**locals())
+
+
+def fix_release_filenames(release, directory=None, copy=False):
     '''
     Renames a release and all of its files so that it has the proper
     directory name and includes only allowed files with filenames less
@@ -51,26 +78,44 @@ def fix_release_filenames(release, directory=None):
         directory = os.path.dirname(release.path)
 
     output_dir = os.path.join(directory, directory_name(release))
-    os.makedirs(output_dir)
+    os.makedirs(output_dir, exist_ok=not copy)
 
-    for audio_file in release.audio_files:
-        relpath = os.path.relpath(audio_file, start=release.path)
-        path = os.path.join(output_dir, relpath)
-        path = truncate_path(path)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        shutil.move(audio_file, path)
+    rename_audio_files(release, directory=output_dir, copy=copy)
+    rename_other_files(release, directory=output_dir, copy=copy)
 
-    for other_file in release.other_files:
-        relpath = os.path.relpath(other_file, start=release.path)
-        path = os.path.join(output_dir, relpath)
-        path = truncate_path(path)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        shutil.move(other_file, path)
-
-    shutil.rmtree(release.path)
     release.path = output_dir
     return release
 
+
+def rename_audio_files(release, directory, copy=False):
+    '''
+    Moves (or copies) `release.audio_files` to their proper location within `directory`.
+
+    Assumes that the audio files have already been properly tagged.
+    '''
+    for audio_file in release.audio_files:
+        filename = audio_filename(audio_file, is_compilation=release.type == 7)
+        path = os.path.join(directory, filename)
+        path = truncate_path(path)
+        if copy:
+            shutil.copy2(audio_file, path)
+        else:
+            shutil.move(audio_file, path)
+
+
+def rename_other_files(release, directory, copy=False):
+    '''
+    Moves (or copies) `release.other_files` to their proper location within `directory`.
+    '''
+    for other_file in release.other_files:
+        relpath = os.path.relpath(other_file, start=release.path)
+        path = os.path.join(directory, relpath)
+        path = truncate_path(path)
+        os.makedirs(os.path.dirname(path), exist_ok=not copy)
+        if copy:
+            shutil.copy2(other_file, path)
+        else:
+            shutil.move(other_file, path)
 
 def truncate_path(path):
     '''
