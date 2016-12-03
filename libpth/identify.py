@@ -29,10 +29,11 @@ class IdentifySession(TerminalImportSession):
     '''
     A beets import session which is used to identify releases.
     '''
-    def __init__(self, paths, release_list):
+    def __init__(self, paths, release_list, callback):
         self.want_resume = False
         self.config = defaultdict(lambda: None)
         self.release_list = release_list
+        self.callback = callback
         super().__init__(None, None, paths, None)
 
     def run(self):
@@ -244,10 +245,11 @@ def identify_release(session, task):
 
     path = task.toppath.decode(sys.getfilesystemencoding())
     release = Release(path, match=match)
+    session.callback and session.callback(release)
     session.release_list.append(release)
 
 
-def identify_releases(release_paths):
+def identify_releases(release_paths, callback=None):
     '''
     Given an iterator of release paths, this will attempt to identify
     each release and return a list of corresponding Release objects.
@@ -255,6 +257,9 @@ def identify_releases(release_paths):
     Releases that could not be identified will not be present in the list.
 
     Note: This function will ask for user input.
+
+    If you pass in `callback`, it will be called for each identified
+    Release.
     '''
     for path in release_paths:
         if not os.path.exists(syspath(normpath(path))):
@@ -262,7 +267,7 @@ def identify_releases(release_paths):
                 displayable_path(path)))
 
     result = []
-    session = IdentifySession(release_paths, result)
+    session = IdentifySession(release_paths, result, callback)
     session.run()
     return result
 

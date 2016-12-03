@@ -61,7 +61,7 @@ class API:
             ('record_label', release.record_label if release.is_original else ''),
             ('catalogue_number', release.catalog_number if release.is_original else ''),
             ('releasetype', str(release.type)),
-            ('remaster', 'on' if not release.is_original else ''),
+            ('remaster', 'on' if not release.is_original else None),
             ('remaster_year', str(release.year) if not release.is_original else ''),
             ('remaster_title', ''),
             ('remaster_record_label', release.record_label if not release.is_original else ''),
