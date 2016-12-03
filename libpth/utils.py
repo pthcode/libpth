@@ -68,5 +68,6 @@ def make_torrent(path, passkey, output_dir=None):
 
     torrent_path = tempfile.mktemp(dir=output_dir, suffix='.torrent')
     torrent = metafile.Metafile(torrent_path)
-    torrent.create(path, ['https://please.passtheheadphones.me/'], private=True, callback=_add_source)
+    announce_url = 'https://please.passtheheadphones.me/{}/announce'.format(passkey)
+    torrent.create(path, [announce_url], private=True, callback=_add_source)
     return torrent_path
