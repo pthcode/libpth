@@ -17,12 +17,14 @@ class Release:
 
     - `path`: The path to the release directory.
     - `info`: An optional beets.autotag.AlbumInfo object.
+    - `match`: An optional beets.autotag.AlbumMatch object.
     '''
-    def __init__(self, path=None, info=None, title=None, album_artist=None, artists=None, year=None, original_year=None,
-                 medium=None, format=None, bitrate=None, record_label=None, catalog_number=None, type=None,
-                 artwork_url=None, tags=None):
+    def __init__(self, path=None, info=None, match=None, title=None, album_artist=None, artists=None, year=None,
+                 original_year=None, medium=None, format=None, bitrate=None, record_label=None, catalog_number=None,
+                 type=None, artwork_url=None, tags=None):
         self.path = path
-        self.info = info
+        self.match = match
+        self.info = match and match.info
         self.artwork_url = artwork_url
         self.tags = tags
         self._title = title

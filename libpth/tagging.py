@@ -4,13 +4,14 @@ import shutil
 import string
 import os.path
 import textwrap
+import beets.autotag
 from beets.mediafile import MediaFile
 from beets.util import sanitize_path
 from .utils import locate, ext_matcher
 
 
 ALBUM_TEMPLATE = string.Template('$artist - $album ($year) [$format_info]')
-AUDIO_FILE_TEMPLATE = string.Template('$number $title$extension')
+AUDIO_FILE_TEMPLATE = string.Template('$number. $title$extension')
 AUDIO_EXTENSIONS = ('.flac', '.mp3')
 ALLOWED_EXTENSIONS = AUDIO_EXTENSIONS + ('.cue', '.log', '.gif', '.jpeg', '.jpg', '.md5', '.nfo', '.pdf', '.png',
                                          '.sfv', '.txt')
@@ -63,6 +64,16 @@ def audio_filename(path, is_compilation=False):
 
     _, extension = os.path.splitext(path)
     return AUDIO_FILE_TEMPLATE.substitute(**locals())
+
+
+def apply_metadata(release):
+    '''
+    Assuming that `release` has a valid AlbumMatch, this function will
+    apply the new metadata to the release's audio files.
+    '''
+    beets.autotag.apply_metadata(release.info, release.match.mapping)
+    for item, _ in release.match.mapping.items():
+        item.try_write()
 
 
 def fix_release_filenames(release, directory=None, copy=False):

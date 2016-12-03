@@ -238,12 +238,12 @@ def identify_release(session, task):
     if not task or task.skip:
         return
 
-    choice = choose_match(task)
-    if not isinstance(choice, AlbumMatch):
+    match = choose_match(task)
+    if not isinstance(match, AlbumMatch):
         return
 
     path = task.toppath.decode(sys.getfilesystemencoding())
-    release = Release(path, choice.info)
+    release = Release(path, match=match)
     session.release_list.append(release)
 
 
