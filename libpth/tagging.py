@@ -11,7 +11,7 @@ from .utils import locate, ext_matcher
 
 
 ALBUM_TEMPLATE = string.Template('$artist - $album ($year) [$format_info]')
-AUDIO_FILE_TEMPLATE = string.Template('$number. $title$extension')
+AUDIO_FILE_TEMPLATE = string.Template('$number $title$extension')
 RELEASE_DESCRIPTION_TEMPLATE = string.Template('''
 Track list:
 $track_list
