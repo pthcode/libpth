@@ -209,7 +209,7 @@ def release_year(path):
     '''
     match = re.search(r'\d{4}', path)
     if match:
-        return int(match)
+        return int(match.group(0))
     mediafile = MediaFile(audio_files(path)[0])
     return mediafile.year
 
