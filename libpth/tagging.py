@@ -129,7 +129,7 @@ def rename_other_files(release, directory, copy=False):
         relpath = os.path.relpath(other_file, start=release.path)
         path = os.path.join(directory, relpath)
         path = truncate_path(path)
-        os.makedirs(os.path.dirname(path), exist_ok=not copy)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         if copy:
             shutil.copy2(other_file, path)
         else:
