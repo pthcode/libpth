@@ -19,7 +19,7 @@ $track_list
 AUDIO_EXTENSIONS = ('.flac', '.mp3')
 ALLOWED_EXTENSIONS = AUDIO_EXTENSIONS + ('.cue', '.log', '.gif', '.jpeg', '.jpg', '.md5', '.nfo', '.pdf', '.png',
                                          '.sfv', '.txt')
-BLOCKED_CHARS_REGEX = re.compile(r'[:?<>\*|"]')
+BLOCKED_CHARS_REGEX = re.compile(r'[:?<>\*|"/]')
 MAX_FILENAME_LENGTH = 180
 
 
@@ -68,8 +68,8 @@ def audio_filename(path, is_compilation=False):
         title = mediafile.title
 
     _, extension = os.path.splitext(path)
-    filename =  AUDIO_FILE_TEMPLATE.substitute(**locals())
-    filename = BLOCKED_CHARS_REGEX.sub('', filename)
+    filename = AUDIO_FILE_TEMPLATE.substitute(**locals())
+    filename = BLOCKED_CHARS_REGEX.sub('_', filename)
     return filename
 
 
