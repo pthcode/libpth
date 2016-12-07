@@ -1,5 +1,6 @@
 import re
 import requests
+from . import structures
 from . import utils
 
 
@@ -37,16 +38,9 @@ class API:
     def post(self, url, *args, **kwargs):
         return self.session.post(self.url + url, *args, **kwargs)
 
-    def _login(self):
-        data = {'username': self.username, 'password': self.password}
-        r = self.post('login.php', data=data)
-        if r.status_code != 200:
-            raise LoginException('Unable to log in. Check your credentials.')
-        res = self.get('ajax.php', params={'action': 'index'}).json()
-        accountinfo = res['response']
-        self.authkey = accountinfo['authkey']
-        self.passkey = accountinfo['passkey']
-        self.userid = accountinfo['id']
+    def ajax(self, action, **params):
+        r = self.get('ajax.php', params=dict(params, action=action))
+        return r.json()['response']
 
     def upload(self, release, description=None):
         '''
@@ -91,3 +85,35 @@ class API:
                 raise UploadException(match.group(1))
             else:
                 raise UploadException('The upload failed.')
+
+    def get_release_group(self, id):
+        '''
+        Returns the ReleaseGroup with id=`id`.
+        '''
+        data = self.ajax('torrentgroup', id=id)
+        releases = []
+        for torrent in data['torrents']:
+            releases.append(structures.Release(
+                title=data['group']['name'],
+                year=torrent['remasterYear'],
+                original_year=data['group']['year'],
+                medium=torrent['media'],
+                format=torrent['format'],
+                bitrate=torrent['encoding'],
+                record_label=torrent['remasterRecordLabel'] or None,
+                catalog_number=torrent['remasterCatalogueNumber'] or None
+            ))
+        return structures.ReleaseGroup(
+            title=data['group']['name'],
+            releases=releases,
+        )
+
+    def _login(self):
+        data = {'username': self.username, 'password': self.password}
+        r = self.post('login.php', data=data)
+        if r.status_code != 200:
+            raise LoginException('Unable to log in. Check your credentials.')
+        accountinfo = self.ajax('index')
+        self.authkey = accountinfo['authkey']
+        self.passkey = accountinfo['passkey']
+        self.userid = accountinfo['id']

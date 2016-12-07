@@ -6,7 +6,9 @@ class ReleaseGroup:
     '''
     A ReleaseGroup represents an album and all of its releases.
     '''
-    pass
+    def __init__(self, title=None, releases=None):
+        self.title = title
+        self.releases = releases
 
 
 class Release:
