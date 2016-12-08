@@ -1,4 +1,5 @@
 import re
+from itertools import count
 import requests
 from . import structures
 from . import utils
@@ -86,7 +87,7 @@ class API:
             else:
                 raise UploadException('The upload failed.')
 
-    def get_release_group(self, id):
+    def release_group(self, id):
         '''
         Returns the ReleaseGroup with id=`id`.
         '''
@@ -107,6 +108,43 @@ class API:
             title=data['group']['name'],
             releases=releases,
         )
+
+    def release(self, id):
+        '''
+        Returns the Release with id=`id`.
+        '''
+        data = self.ajax('torrent', id=id)
+        return structures.Release(
+            title=data['group']['name'],
+            album_artist=data['group']['musicInfo']['artists'][0]['name'],
+            year=data['torrent']['remasterYear'],
+            original_year=data['group']['year'],
+            medium=data['torrent']['media'],
+            format=data['torrent']['format'],
+            bitrate=data['torrent']['encoding'],
+            record_label=data['torrent']['remasterRecordLabel'] or None,
+            catalog_number=data['torrent']['remasterCatalogueNumber'] or None,
+            tags=data['group']['tags'],
+            artwork_url=data['group']['wikiImage'],
+        )
+
+    def snatched_releases(self):
+        '''
+        Returns an iterator of Releases the current user has snatched.
+        '''
+        pattern = re.compile('torrents.php\?id=(\d+)&amp;torrentid=(\d+)')
+        for page in count(1):
+            params = {
+                'type': 'snatched',
+                'userid': self.userid,
+                'page': page,
+            }
+            r = self.get('torrents.php', params=params)
+            content = r.text
+            for _, release_id in pattern.findall(content):
+                yield self.release(release_id)
+            if 'Next &gt;' not in content:
+                return
 
     def _login(self):
         data = {'username': self.username, 'password': self.password}
