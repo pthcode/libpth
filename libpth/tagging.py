@@ -196,7 +196,7 @@ def audio_bitrate(path):
     elif mediafile.format == 'MP3' and mediafile.bitrate == 320000:
         return '320'
     elif mediafile.format == 'MP3':
-        bitrates = (MediaFile(audio_file).bitrate for audio_file in audio_files(path))
+        bitrates = [MediaFile(audio_file).bitrate for audio_file in audio_files(path)]
         average_bitrate = sum(bitrates) / len(bitrates)
         if average_bitrate >= 200000:
             return 'V0'
