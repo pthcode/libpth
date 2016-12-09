@@ -34,7 +34,12 @@ def directory_name(release):
     artist = textwrap.shorten(release.album_artist, width=50, placeholder='_')
     album = textwrap.shorten(release.title, width=40, placeholder='_')
     year = release.year
-    format_info = release.format
+    if release.bitrate == 'V0 (VBR)':
+        format_info = 'V0'
+    elif release.bitrate == '320':
+        format_info = '320'
+    else:
+        format_info = release.format
     if release.medium != 'CD':
         format_info = release.medium + ' ' + format_info
     path = ALBUM_TEMPLATE.substitute(**locals())
